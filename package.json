@@ -1,0 +1,37 @@
+{
+  "name": "meeting-taximeter",
+  "publisher": "ernfu", 
+  "version": "0.1.0",
+  "description": "",
+  "main": "out/extention.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -p .",
+    "watch": "tsc -w -p ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ernfu/meeting-taximeter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ernfu/meeting-taximeter/issues"
+  },
+  "homepage": "https://github.com/ernfu/meeting-taximeter#readme",
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/vscode": "^1.125.0",
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "contributes": {
+  "commands": [
+    { "command": "meetingTaximeter.start", "title": "Meeting Taximeter: Start Meeting" }
+  ]
+  }
+}
