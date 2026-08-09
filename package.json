@@ -31,8 +31,8 @@
   },
   "contributes": {
   "commands": [
-    { "command": "meetingTaximeter.start", "title": "Meeting Taximeter: Start Meeting" },
-    { "command": "meetingTaximeter.stop", "title": "Meeting Taximeter: End Meeting" }
+    { "command": "meetingTaximeter.start", "title": "Meeting Taximeter: Start Meter" },
+    { "command": "meetingTaximeter.stop", "title": "Meeting Taximeter: Stop Meter" }
   ]
   }
 }

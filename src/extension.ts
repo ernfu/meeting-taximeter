@@ -40,10 +40,11 @@ export function calcElapsedSeconds(start: Date, now: Date): number{
 export function meter(meeting: Meeting, start: Date, now: Date): string{
 
   const elapsedSeconds = calcElapsedSeconds(start, now)
-
   const costPerSecond = meetingCostPerSecond(meeting)
 
-  return `meeting now costs ${costPerSecond * elapsedSeconds}`;
+  const formatter = new Intl.NumberFormat("en-AU", {style: "currency", currency: "AUD"})
+
+  return `meeting now costs ${formatter.format(costPerSecond * elapsedSeconds)}`;
 }
 
 let startTime: Date | undefined;
@@ -52,6 +53,9 @@ let startMeter: NodeJS.Timeout | undefined;
 
 
 export function activate(context: vscode.ExtensionContext){
+
+  const statusBar = vscode.window.createStatusBarItem()
+
   const start = vscode.commands.registerCommand("meetingTaximeter.start", () => {
     console.log("start command ran!");
     vscode.window.showInformationMessage("Fuck. meetings. again.");
@@ -71,7 +75,9 @@ export function activate(context: vscode.ExtensionContext){
     startMeter = setInterval(
       () => {
         if (!meeting || !startTime) return;
-        console.log(meter(meeting, startTime, new Date()))},
+        statusBar.text = (meter(meeting, startTime, new Date()));
+        statusBar.show();
+      },
       1000
     );
   });
@@ -79,7 +85,13 @@ export function activate(context: vscode.ExtensionContext){
 
   const stop = vscode.commands.registerCommand("meetingTaximeter.stop", () => {
       console.log("stop command ran!")
+      
       clearInterval(startMeter)
+      statusBar.hide()
+
+      startTime = undefined;
+      startMeter = undefined;
+      meeting = undefined;
   });
   context.subscriptions.push(stop);
 }
