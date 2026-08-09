@@ -37,12 +37,12 @@ export function calcElapsedSeconds(start: Date, now: Date): number{
   return (now.getTime() - start.getTime()) / 1000
 }
 
+const formatter = new Intl.NumberFormat("en-AU", {style: "currency", currency: "AUD"})
+
 export function meter(meeting: Meeting, start: Date, now: Date): string{
 
   const elapsedSeconds = calcElapsedSeconds(start, now)
   const costPerSecond = meetingCostPerSecond(meeting)
-
-  const formatter = new Intl.NumberFormat("en-AU", {style: "currency", currency: "AUD"})
 
   return `meeting now costs ${formatter.format(costPerSecond * elapsedSeconds)}`;
 }
@@ -54,17 +54,44 @@ let startMeter: NodeJS.Timeout | undefined;
 
 export function activate(context: vscode.ExtensionContext){
 
-  const statusBar = vscode.window.createStatusBarItem()
+  const statusBar = vscode.window.createStatusBarItem();
+  context.subscriptions.push(statusBar);
+
+  function tick(){
+    if (!meeting || !startTime) return;
+
+    const currTime = new Date();
+
+    statusBar.text = (meter(meeting, startTime, currTime));
+
+    // overtime logic
+    if (calcElapsedSeconds(startTime, currTime) > meeting.durationMinutes * 60){
+      statusBar.backgroundColor = new vscode.ThemeColor("statusBarItem.errorBackground");
+    }
+  }
+
+  function reset(){
+    clearInterval(startMeter);
+    statusBar.hide();
+
+    startTime = undefined;
+    startMeter = undefined;
+    meeting = undefined;
+
+    statusBar.backgroundColor = undefined;
+  }
 
   const start = vscode.commands.registerCommand("meetingTaximeter.start", () => {
     console.log("start command ran!");
     vscode.window.showInformationMessage("Fuck. meetings. again.");
 
+    reset(); //start fresh
+
     const testMeeting: Meeting = {
       roles: [
         {role: "ceo", count: 1, annualSalary: 400000}
       ],
-      durationMinutes: 60
+      durationMinutes: 0.01
     };
 
     const testMeetCost = meetingCostPerSecond(testMeeting) * 60 * testMeeting.durationMinutes;
@@ -72,26 +99,17 @@ export function activate(context: vscode.ExtensionContext){
 
     startTime = new Date();
     meeting = testMeeting;
-    startMeter = setInterval(
-      () => {
-        if (!meeting || !startTime) return;
-        statusBar.text = (meter(meeting, startTime, new Date()));
-        statusBar.show();
-      },
-      1000
-    );
+    statusBar.show();
+
+    tick(); //tick first to start meter empty
+    startMeter = setInterval(tick, 1000);
   });
   context.subscriptions.push(start);
 
   const stop = vscode.commands.registerCommand("meetingTaximeter.stop", () => {
       console.log("stop command ran!")
-      
-      clearInterval(startMeter)
-      statusBar.hide()
 
-      startTime = undefined;
-      startMeter = undefined;
-      meeting = undefined;
+      reset();
   });
   context.subscriptions.push(stop);
 }
