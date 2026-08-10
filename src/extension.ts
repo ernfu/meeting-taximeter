@@ -7,6 +7,14 @@ type Meeting ={
   durationMinutes: number;
 };
 
+type MeetingRecord = {
+  start: number,
+  durationMinutes: number,
+  elapsedSeconds: number,
+  roles: Role[],
+  cost: number
+}
+
 // random guess from https://lnkd.in/p/gusW6sFU
 const ROLE_SALARY: Record<Role, number> = {
   ceo:     250000,
@@ -101,12 +109,32 @@ export function calcElapsedSeconds(start: Date, now: Date): number{
 
 const formatter = new Intl.NumberFormat("en-AU", {style: "currency", currency: "AUD"})
 
+export function meetingCost(meeting: Meeting, start: Date, now: Date): number {
+
+  const costPerSecond = meetingCostPerSecond(meeting);
+  const elapsedSeconds = calcElapsedSeconds(start, now);
+
+  return costPerSecond * elapsedSeconds;
+}
+
 export function meter(meeting: Meeting, start: Date, now: Date): string{
 
-  const elapsedSeconds = calcElapsedSeconds(start, now)
-  const costPerSecond = meetingCostPerSecond(meeting)
+  const out = meetingCost(meeting, start, now)
 
-  return `meeting now costs ${formatter.format(costPerSecond * elapsedSeconds)}`;
+  return `meeting now costs ${formatter.format(out)}`;
+}
+
+export function meetingRecord(meeting: Meeting, start: Date, now: Date): MeetingRecord{
+  //here
+  const out = {
+    start: start.getTime(),
+    durationMinutes: meeting.durationMinutes,
+    elapsedSeconds: calcElapsedSeconds(start, now),
+    roles: meeting.roles,
+    cost: meetingCost(meeting, start, now)
+  };
+
+  return out;
 }
 
 let startTime: Date | undefined;
@@ -132,7 +160,20 @@ export function activate(context: vscode.ExtensionContext){
     }
   }
 
-  function reset(){
+  async function reset(){
+
+    if (meeting && startTime){
+      // save session if there is one
+      let history = context.globalState.get<MeetingRecord[]>("history");
+      if (history === undefined) {history = []}; // if none just create empty
+
+      const thisMeeting = meetingRecord(meeting, startTime, new Date());
+      history.push(thisMeeting)
+
+      await context.globalState.update("history", history);
+
+    }
+
     clearInterval(startMeter);
     statusBar.hide();
 
@@ -167,7 +208,7 @@ export function activate(context: vscode.ExtensionContext){
 
     if (duration === undefined) return;
 
-    reset(); //start fresh
+    await reset(); //start fresh
     
     const roles = picked.map(name => PEOPLE[name]);
 
@@ -185,12 +226,16 @@ export function activate(context: vscode.ExtensionContext){
   });
   context.subscriptions.push(start);
 
-  const stop = vscode.commands.registerCommand("meetingTaximeter.stop", () => {
-      console.log("stop command ran!")
+  const stop = vscode.commands.registerCommand("meetingTaximeter.stop", async () => {
+    console.log("stop command ran!")
 
-      reset();
+    await reset();
   });
   context.subscriptions.push(stop);
-}
 
-export function deactivate() {}
+  const clear = vscode.commands.registerCommand("meetingTaximeter.clear", async() => {
+    console.log("clear command ran!")
+    await context.globalState.update("history", undefined);
+  });
+  context.subscriptions.push(clear);
+}
