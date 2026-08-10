@@ -1,32 +1,94 @@
 import * as vscode from "vscode";
 
-type Role = "ceo" | "coo" | "hds" | "cco" | "hmkt" | "cstat" | "htp" | "heng" | "csci" | "cdev" | "ds" | "de" | "sde" | "ca";
-
-type RoleRow = {
-  role: Role;
-  count: number;
-  annualSalary: number;
-};
+type Role = "ceo" | "coo" | "cco" | "cfo" | "cstat" | "csci" | "cdev" | "hds" | "heng" | "htp" | "hmkt" | "vpsales" | "revops" | "mktex" | "ea" | "smsp" | "ds" | "jds" | "da" | "ca" | "sse" | "ssysops" | "sdev" | "jfd";
 
 type Meeting ={
-  roles: RoleRow[];
+  roles: Role[];
   durationMinutes: number;
+};
+
+// random guess from https://lnkd.in/p/gusW6sFU
+const ROLE_SALARY: Record<Role, number> = {
+  ceo:     250000,
+  coo:     200000,
+  cco:     200000,
+  cfo:     200000,
+  cstat:   200000,
+  csci:    200000,
+  cdev:    200000,
+
+  hds:     180000,
+  heng:    200000,
+  htp:     150000,
+  hmkt:    150000,
+
+  vpsales: 180000,
+  revops:  140000,
+  mktex:    90000,
+  ea:       90000,
+
+  smsp:    140000,
+  ds:      130000,
+  jds:     100000,
+  da:      110000,
+  ca:      100000,
+
+  sse:     160000,
+  ssysops: 150000,
+  sdev:    150000,
+  jfd:      90000,
+};
+
+
+const PEOPLE: Record<string, Role> = {
+  "Jordie":  "ceo",
+  "Rafi":    "cfo",
+  "Bec":     "htp",
+  "Lauren":  "ea",
+
+  "Pat":     "csci",
+  "John":    "cstat",
+  "Ernest":  "ds",
+  "Jed":     "jds",
+
+  "Matt":    "heng",
+  "Aysa":    "sse",
+  "Tong":    "ssysops",
+  "Ramon":   "da",
+  "Tra":     "da",
+
+  "Hamish":  "coo",
+  "Rachel":  "hds",
+  "Lachie":  "smsp",
+  "Becky":   "ca",
+  "Carl":    "ca",
+
+  "Clyde":   "cdev",
+  "Michael": "sdev",
+  "Ruxin":   "jfd",
+
+  "Paul":    "cco",
+  "James":   "vpsales",
+  "Leo":     "revops",
+
+  "Eimear":  "hmkt",
+  "Lia":     "mktex",
 };
 
 // 52 weeks, 5 days a week, 13 public holiday in VIC, 20 days PTO.
 // 8.5 working hours per day
 const WORKING_SECONDS_PER_YEAR = (52 * 5 - 13 - 20) * 8.5 * 60 * 60;
 
-export function rowCostPerSecond(roleRow: RoleRow): number{
-  return roleRow.count * roleRow.annualSalary / WORKING_SECONDS_PER_YEAR;
+export function roleCostPerSecond(role: Role): number{
+  return ROLE_SALARY[role] / WORKING_SECONDS_PER_YEAR;
 }
 
 export function meetingCostPerSecond(meeting: Meeting): number{
 
   let total = 0;
 
-  for (const row of meeting.roles){
-    total += rowCostPerSecond(row);
+  for (const role of meeting.roles){
+    total += roleCostPerSecond(role);
   }
 
   return total;
@@ -88,9 +150,7 @@ export function activate(context: vscode.ExtensionContext){
     reset(); //start fresh
 
     const testMeeting: Meeting = {
-      roles: [
-        {role: "ceo", count: 1, annualSalary: 400000}
-      ],
+      roles: ["ceo"],
       durationMinutes: 0.01
     };
 
