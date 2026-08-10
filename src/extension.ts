@@ -143,26 +143,45 @@ export function activate(context: vscode.ExtensionContext){
     statusBar.backgroundColor = undefined;
   }
 
-  const start = vscode.commands.registerCommand("meetingTaximeter.start", () => {
+  const start = vscode.commands.registerCommand("meetingTaximeter.start", async () => {
     console.log("start command ran!");
     vscode.window.showInformationMessage("Fuck. meetings. again.");
 
-    reset(); //start fresh
+    const names = Object.keys(PEOPLE);
 
-    const testMeeting: Meeting = {
-      roles: ["ceo"],
-      durationMinutes: 0.01
+    const picked = await vscode.window.showQuickPick(names, {
+      canPickMany: true,
+      placeHolder: "Who's in this meeting?"
+    });
+
+    if (picked === undefined || picked.length === 0) return;
+
+    const duration = await vscode.window.showInputBox({
+      prompt: "How long is this meeting (in minutes)?",
+      value: "30",
+      validateInput: (v) => { // return undefined = validate passed
+        if (v.trim() === "") return "Bruh enter something";
+        if (Number.isNaN(Number(v)) || Number(v) <= 0) return "Bruh sensible numbers only";
+      }
+    })
+
+    if (duration === undefined) return;
+
+    reset(); //start fresh
+    
+    const roles = picked.map(name => PEOPLE[name]);
+
+    meeting = {
+      roles, durationMinutes: Number(duration)
     };
 
-    const testMeetCost = meetingCostPerSecond(testMeeting) * 60 * testMeeting.durationMinutes;
-    console.log(`1h of ceo's time is worth ${testMeetCost}`);
+    console.log(`This meeting is expected to cost ${formatter.format(meetingCostPerSecond(meeting) * meeting.durationMinutes * 60)}...`)
 
     startTime = new Date();
-    meeting = testMeeting;
     statusBar.show();
 
     tick(); //tick first to start meter empty
-    startMeter = setInterval(tick, 1000);
+    startMeter = setInterval(tick, 250); // 4 tickets per seconds
   });
   context.subscriptions.push(start);
 
