@@ -1,141 +1,7 @@
 import * as vscode from "vscode";
+import { PEOPLE } from "./people";
+import { Meeting, calcElapsedSeconds, meter, MeetingRecord, meetingRecord, formatter, meetingCostPerSecond } from "./cost"
 
-type Role = "ceo" | "coo" | "cco" | "cfo" | "cstat" | "csci" | "cdev" | "hds" | "heng" | "htp" | "hmkt" | "vpsales" | "revops" | "mktex" | "ea" | "smsp" | "ds" | "jds" | "da" | "ca" | "sse" | "ssysops" | "sdev" | "jfd";
-
-type Meeting ={
-  roles: Role[];
-  durationMinutes: number;
-};
-
-type MeetingRecord = {
-  start: number,
-  durationMinutes: number,
-  elapsedSeconds: number,
-  roles: Role[],
-  cost: number
-}
-
-// random guess from https://lnkd.in/p/gusW6sFU
-const ROLE_SALARY: Record<Role, number> = {
-  ceo:     250000,
-  coo:     200000,
-  cco:     200000,
-  cfo:     200000,
-  cstat:   200000,
-  csci:    200000,
-  cdev:    200000,
-
-  hds:     180000,
-  heng:    200000,
-  htp:     150000,
-  hmkt:    150000,
-
-  vpsales: 180000,
-  revops:  140000,
-  mktex:    90000,
-  ea:       90000,
-
-  smsp:    140000,
-  ds:      130000,
-  jds:     100000,
-  da:      110000,
-  ca:      100000,
-
-  sse:     160000,
-  ssysops: 150000,
-  sdev:    150000,
-  jfd:      90000,
-};
-
-
-const PEOPLE: Record<string, Role> = {
-  "Jordie":  "ceo",
-  "Rafi":    "cfo",
-  "Bec":     "htp",
-  "Lauren":  "ea",
-
-  "Pat":     "csci",
-  "John":    "cstat",
-  "Ernest":  "ds",
-  "Jed":     "jds",
-
-  "Matt":    "heng",
-  "Aysa":    "sse",
-  "Tong":    "ssysops",
-  "Ramon":   "da",
-  "Tra":     "da",
-
-  "Hamish":  "coo",
-  "Rachel":  "hds",
-  "Lachie":  "smsp",
-  "Becky":   "ca",
-  "Carl":    "ca",
-
-  "Clyde":   "cdev",
-  "Michael": "sdev",
-  "Ruxin":   "jfd",
-
-  "Paul":    "cco",
-  "James":   "vpsales",
-  "Leo":     "revops",
-
-  "Eimear":  "hmkt",
-  "Lia":     "mktex",
-};
-
-// 52 weeks, 5 days a week, 13 public holiday in VIC, 20 days PTO.
-// 8.5 working hours per day
-const WORKING_SECONDS_PER_YEAR = (52 * 5 - 13 - 20) * 8.5 * 60 * 60;
-
-export function roleCostPerSecond(role: Role): number{
-  return ROLE_SALARY[role] / WORKING_SECONDS_PER_YEAR;
-}
-
-export function meetingCostPerSecond(meeting: Meeting): number{
-
-  let total = 0;
-
-  for (const role of meeting.roles){
-    total += roleCostPerSecond(role);
-  }
-
-  return total;
-}
-
-export function calcElapsedSeconds(start: Date, now: Date): number{
-  // getTime in ms, /1000 to get seconds
-  return (now.getTime() - start.getTime()) / 1000
-}
-
-const formatter = new Intl.NumberFormat("en-AU", {style: "currency", currency: "AUD"})
-
-export function meetingCost(meeting: Meeting, start: Date, now: Date): number {
-
-  const costPerSecond = meetingCostPerSecond(meeting);
-  const elapsedSeconds = calcElapsedSeconds(start, now);
-
-  return costPerSecond * elapsedSeconds;
-}
-
-export function meter(meeting: Meeting, start: Date, now: Date): string{
-
-  const out = meetingCost(meeting, start, now)
-
-  return `meeting now costs ${formatter.format(out)}`;
-}
-
-export function meetingRecord(meeting: Meeting, start: Date, now: Date): MeetingRecord{
-  //here
-  const out = {
-    start: start.getTime(),
-    durationMinutes: meeting.durationMinutes,
-    elapsedSeconds: calcElapsedSeconds(start, now),
-    roles: meeting.roles,
-    cost: meetingCost(meeting, start, now)
-  };
-
-  return out;
-}
 
 let startTime: Date | undefined;
 let meeting: Meeting | undefined;
@@ -171,7 +37,7 @@ export function activate(context: vscode.ExtensionContext){
       history.push(thisMeeting)
 
       await context.globalState.update("history", history);
-
+      console.log(context.globalState.get("history"))
     }
 
     clearInterval(startMeter);
