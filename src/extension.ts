@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { PEOPLE } from "./people";
-import { Meeting, calcElapsedSeconds, meter, MeetingRecord, meetingRecord, formatter, meetingCostPerSecond } from "./cost"
+import { Meeting, calcElapsedSeconds, meter, MeetingRecord, meetingRecord, formatter, meetingCostPerSecond, getMeetingRecords, totalCost, topByCost } from "./cost"
 
 
 let startTime: Date | undefined;
@@ -104,4 +104,34 @@ export function activate(context: vscode.ExtensionContext){
     await context.globalState.update("history", undefined);
   });
   context.subscriptions.push(clear);
+
+  const history = vscode.commands.registerCommand("meetingTaximeter.history", async() => {
+    console.log("history command ran!")
+
+    const allMeetings = context.globalState.get<MeetingRecord[]>("history")?? [];
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+
+    const monthMeetings = getMeetingRecords( allMeetings , new Date(year, month, 1), new Date(year, month +1 , 1));
+    const monthlyCost = totalCost(monthMeetings);
+    const top2raw = topByCost(allMeetings, 2);
+    const top2 = top2raw.map(m => formatter.format(m.cost));
+
+    const panel = vscode.window.createWebviewPanel(
+      //here
+      "startMeter",
+      "Start Meter",
+      vscode.ViewColumn.One,
+      { enableScripts: true }
+    )
+
+    panel.webview.html = `
+    <h1>Meeting cost history</h1>
+    <p>We've spent ${formatter.format(monthlyCost)} on meetings this month...</p>
+    <p>Top 2 most expensive meeting costs ${top2.join(" and ")}...</p>
+    `;
+  });
+  context.subscriptions.push(history)
 }

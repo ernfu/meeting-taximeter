@@ -19,9 +19,9 @@ const WORKING_SECONDS_PER_YEAR = (52 * 5 - 13 - 20) * 8.5 * 60 * 60;
 
 export function roleCostPerSecond(role: Role): number{
     return ROLE_SALARY[role] / WORKING_SECONDS_PER_YEAR;
-  }
-  
-  export function meetingCostPerSecond(meeting: Meeting): number{
+}
+
+export function meetingCostPerSecond(meeting: Meeting): number{
   
     let total = 0;
   
@@ -64,4 +64,27 @@ export function meetingRecord(meeting: Meeting, start: Date, now: Date): Meeting
     };
   
     return out;
+}
+
+export function getMeetingRecords(meetings: MeetingRecord[], startDate: Date, endDate: Date): MeetingRecord[]{
+
+    const out = meetings.filter( m =>(m.start >= startDate.getTime() && m.start < endDate.getTime()));
+
+    return out;
+}
+
+export function totalCost(meetings: MeetingRecord[]): number{
+
+    return meetings.reduce( (out, m) => out + m.cost, 0);
+}
+
+export function topByCost(meetings: MeetingRecord[], n: number): MeetingRecord[]{
+
+    const copied = [...meetings];
+
+    const sorted = copied.sort( (a, b) => b.cost - a.cost);
+
+    const topN = sorted.slice(0, n);
+
+    return topN
 }
