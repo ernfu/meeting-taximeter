@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; style-src {{cspSource}}; font-src {{cspSource}}; img-src {{cspSource}}; script-src 'nonce-{{nonce}}';">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{styleUri}}">
+  <title>Meeting Taximeter</title>
+</head>
+<body>
+  <main id="app" class="idle">
+
+    <section class="stage" id="stage">
+      <canvas id="fire" class="fx"></canvas>
+
+      <div class="hud" id="hud">
+        <div class="status" id="status">INSERT MEETING</div>
+        <div class="wobble"><div class="score" id="score">$0.00</div></div>
+        <div class="chips">
+          <span class="chip people" id="chipPeople">0</span>
+          <span class="times">X</span>
+          <span class="chip rate" id="chipRate">$0.00</span>
+          <span class="per">/MIN</span>
+        </div>
+        <div class="bar"><div class="fill" id="fill"></div></div>
+        <div class="meta"><span id="clock">00:00</span><span id="budget"></span></div>
+        <div class="who" id="who"></div>
+        <button class="btn" id="action">START METER</button>
+        <button class="btn small" id="historyBtn">HISTORY</button>
+      </div>
+
+      <canvas id="sparks" class="fx"></canvas>
+      <div class="pops" id="pops"></div>
+
+      <div class="history" id="history">
+        <header>
+          <button class="icon-btn" id="back">&lt; BACK</button>
+          <span class="title">HISTORY</span>
+          <button class="icon-btn" id="wipe" title="Delete all history">
+            <span class="label">SURE?</span>
+            <svg viewBox="0 0 8 8" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M3 0h2v1H3zM0 1h8v1H0zM1 2h6v6H1zM2 3v4h1V3zM5 3v4h1V3z"/></svg>
+          </button>
+        </header>
+        <div class="totals">
+          <div class="row"><span>THIS MONTH</span><span class="value" id="month">$0.00</span></div>
+          <div class="row"><span>THIS QUARTER</span><span class="value" id="quarter">$0.00</span></div>
+        </div>
+        <h2>HALL OF SHAME</h2>
+        <ol class="board" id="board"></ol>
+        <h2 id="recentHead">ALL MEETINGS</h2>
+        <ol class="board recent" id="recent"></ol>
+      </div>
+
+      <canvas id="road"></canvas>
+    </section>
+
+  </main>
+  <script nonce="{{nonce}}" src="{{scriptUri}}"></script>
+</body>
+</html>

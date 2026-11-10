@@ -1,11 +1,13 @@
 {
   "name": "meeting-taximeter",
+  "displayName": "Meeting Taximeter",
   "publisher": "ernfu", 
   "version": "0.1.0",
   "description": "",
   "main": "out/extension.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "vscode:prepublish": "npm run build",
     "build": "tsc -p .",
     "watch": "tsc -w -p ."
   },
@@ -27,7 +29,7 @@
     "typescript": "^7.0.2"
   },
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.125.0"
   },
   "contributes": {
   "commands": [
@@ -35,6 +37,11 @@
     { "command": "meetingTaximeter.stop", "title": "Meeting Taximeter: Stop Meter" },
     { "command": "meetingTaximeter.clear", "title": "Meeting Taximeter: Clear History" },
     { "command": "meetingTaximeter.history", "title": "Meeting Taximeter: Show History" }
-  ]
+  ],
+  "views": {
+    "explorer": [
+      { "type": "webview", "id": "meetingTaximeter.view", "name": "Taximeter" }
+    ]
+  }
   }
 }

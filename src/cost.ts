@@ -1,6 +1,7 @@
 import { ROLE_SALARY, Role } from "./people";
 
 export type Meeting ={
+    people: string[];
     roles: Role[];
     durationMinutes: number;
 };
@@ -10,6 +11,7 @@ export type MeetingRecord = {
     durationMinutes: number,
     elapsedSeconds: number,
     roles: Role[],
+    people?: string[], // missing on records saved before names were stored
     cost: number
 }
 
@@ -47,19 +49,13 @@ export function meetingCost(meeting: Meeting, start: Date, now: Date): number {
     return costPerSecond * elapsedSeconds;
 }
 
-export function meter(meeting: Meeting, start: Date, now: Date): string{
-
-    const out = meetingCost(meeting, start, now)
-  
-    return `meeting now costs ${formatter.format(out)}`;
-}
-
 export function meetingRecord(meeting: Meeting, start: Date, now: Date): MeetingRecord{
     const out = {
       start: start.getTime(),
       durationMinutes: meeting.durationMinutes,
       elapsedSeconds: calcElapsedSeconds(start, now),
       roles: meeting.roles,
+      people: meeting.people,
       cost: meetingCost(meeting, start, now)
     };
   
@@ -87,4 +83,17 @@ export function topByCost(meetings: MeetingRecord[], n: number): MeetingRecord[]
     const topN = sorted.slice(0, n);
 
     return topN
+}
+
+export function monthRange(now: Date): [Date, Date]{
+
+    return [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 1, 1)];
+}
+
+// calendar quarters, which line up with AU financial-year quarters
+export function quarterRange(now: Date): [Date, Date]{
+
+    const first = Math.floor(now.getMonth() / 3) * 3;
+
+    return [new Date(now.getFullYear(), first, 1), new Date(now.getFullYear(), first + 3, 1)];
 }
